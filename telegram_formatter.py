@@ -1,4 +1,16 @@
 from datetime import datetime
+import locale
+
+# Stelle sicher, dass Deutsch verwendet wird
+try:
+    locale.setlocale(locale.LC_TIME, "de_DE.UTF-8")
+except locale.Error:
+    locale.setlocale(locale.LC_TIME, "de_DE")  # Fallback für Windows/Linux
+
+def format_date(date_str):
+    """Format ISO datetime string to '15. April 2024'."""
+    dt = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.000Z")
+    return dt.strftime("%-d. %B %Y")  # z.B. '15. April 2024'
 
 def format_datetime(dt_str):
     dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
@@ -7,34 +19,26 @@ def format_datetime(dt_str):
     return date_formatted, time_formatted
 
 def format_flight_offer(flight):
-    price = flight["price"]
-
-    # One-way flight
     if flight["type"] == "one-way":
-        departure_date, departure_time = format_datetime(flight["departure_time"])
-        duration_minutes = flight["duration_outbound"] // 60
-        duration_str = f"{duration_minutes // 60}h {duration_minutes % 60}m"
-
+        duration_minutes = flight["duration"] // 60
         message = (
-            f"📅 {departure_date} | 💶 {price}€ | 🛫 Einfachflug\n"
-            f"⏳ Dauer: {duration_str} | Abflug: {departure_time} Uhr"
+            f"🛫 {flight['city']} ({flight['iata']})\n"
+            f"📅 {format_date(flight['departure_time'])}\n"
+            f"⏱️ Flugdauer: {duration_minutes} Min\n"
+            f"💶 Preis: {flight['price']} EUR\n"
+            f"🔗 [Zur Buchung]({flight['link']})"
         )
-
-    # Roundtrip flight
+    elif flight["type"] == "roundtrip":
+        outbound_minutes = flight["duration_outbound"] // 60
+        inbound_minutes = flight["duration_inbound"] // 60
+        message = (
+            f"🛫 {flight['city']} ({flight['iata']})\n"
+            f"📅 Hinflug: {format_date(flight['departure_time'])} ({outbound_minutes} Min)\n"
+            f"📅 Rückflug: {format_date(flight['return_time'])} ({inbound_minutes} Min)\n"
+            f"💶 Preis: {flight['price']} EUR\n"
+            f"🔗 [Zur Buchung]({flight['link']})"
+        )
     else:
-        outbound_date, outbound_time = format_datetime(flight["departure_time"])
-        return_date, return_time = format_datetime(flight["return_time"])
-
-        outbound_duration = flight["duration_outbound"] // 60
-        inbound_duration = flight["duration_inbound"] // 60
-
-        outbound_duration_str = f"{outbound_duration // 60}h {outbound_duration % 60}m"
-        inbound_duration_str = f"{inbound_duration // 60}h {inbound_duration % 60}m"
-
-        message = (
-            f"📅 {outbound_date} - {return_date} | 💶 {price}€ | 🔄 Hin- & Rückflug\n"
-            f"🛫 Hinflug: {outbound_time} Uhr ({outbound_duration_str})\n"
-            f"🛬 Rückflug: {return_time} Uhr ({inbound_duration_str})"
-        )
+        message = "❌ Unbekannter Flugtyp"
 
     return message
