@@ -1,69 +1,76 @@
+import requests
 import json
 import os
-import requests
+import random
 from config import TELEGRAM_API_KEY, GROUP_ID
 
 TOPICS_FILE = "topics.json"
 
+VALID_TOPIC_COLORS = [
+    7322096,     # Blue
+    16766590,    # Red
+    13338331,     # Green
+    9367192,    # Orange
+    16749490,    # Purple
+    16478047     # Pink
+]
+
+def get_random_icon_color():
+    return random.choice(VALID_TOPIC_COLORS)
+
 
 def load_topics():
-    """Lädt die gespeicherten Topics oder gibt ein leeres Dictionary zurück, falls die Datei leer oder ungültig ist."""
-    if not os.path.exists(TOPICS_FILE):  # Falls die Datei nicht existiert, erstelle eine leere Datei
-        save_topics({})
-        return {}
-
-    try:
+    if os.path.exists(TOPICS_FILE):
         with open(TOPICS_FILE, "r") as f:
-            data = f.read().strip()
-            return json.loads(data) if data else {}  # Falls die Datei leer ist, return {}
-    except json.JSONDecodeError:
-        print("Fehler: Die Datei topics.json ist beschädigt. Sie wird zurückgesetzt.")
-        save_topics({})
-        return {}
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return {}
+    return {}
 
 
 def save_topics(topics):
-    """Save topics to the file."""
     with open(TOPICS_FILE, "w") as f:
-        json.dump(topics, f)
+        json.dump(topics, f, indent=2)
 
 
-def create_topic(topic_name):
+def create_topic(city_name):
+    icon_color = get_random_icon_color()
     """Create a new topic in the Telegram group."""
     url = f"https://api.telegram.org/bot{TELEGRAM_API_KEY}/createForumTopic"
-    response = requests.get(url, params={"chat_id": GROUP_ID, "name": topic_name})
-
+    params = {
+        "chat_id": GROUP_ID,
+        "name": city_name,
+        "icon_color": icon_color
+    }
+    response = requests.post(url, params=params)
     if response.status_code == 200:
         topic_data = response.json()
-        print("Create topic response:", topic_data)  # Debugging output
-
-        # Fix: Use "message_thread_id" instead of "topic_id"
-        if "result" in topic_data and "message_thread_id" in topic_data["result"]:
-            return topic_data["result"]["message_thread_id"]
-        else:
-            print(f"Failed to extract topic ID: {topic_data}")
-            return None  # Handle missing message_thread_id
+        print("Create topic response:", topic_data)
+        return topic_data["result"]["message_thread_id"]
     else:
-        print(f"Failed to create topic: {response.text}")
+        print(f"Failed to create topic for {city_name}: {response.text}")
         return None
 
 
 def ensure_topic_exists(city, iata_code):
-    """Ensure that the topic exists for a given city. Create it if necessary."""
+    """Ensure that a topic exists for the given city and IATA code. Returns topic_id."""
     topics = load_topics()
 
-    # Check if the topic exists using IATA code as the key
     if iata_code in topics:
         return topics[iata_code]["topic_id"]
 
-    # If the topic does not exist, create it
-    new_topic_id = create_topic(city)
-    if new_topic_id:
+    # Falls noch nicht vorhanden → neue Farbe auswählen und Topic anlegen
+    icon_color = get_random_icon_color()
+    topic_id = create_topic(city)
+
+    if topic_id:
         topics[iata_code] = {
-            "city_name": city,
-            "topic_id": new_topic_id
+            "city": city,
+            "topic_id": topic_id,
+            "icon_color": icon_color
         }
         save_topics(topics)
-        return new_topic_id
+        return topic_id
     else:
         return None
