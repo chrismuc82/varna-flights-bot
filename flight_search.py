@@ -16,9 +16,10 @@ def fetch_flight_offers():
         "date_from": today,
         "date_to": three_months_later,
         "curr": "EUR",
-        "limit": 50,
+        "limit": 150,
         "sort": "price",
         "asc": 1,
+        "locale": "de"  # Setzen der Sprache auf Deutsch
     }
 
     # One-way flights
