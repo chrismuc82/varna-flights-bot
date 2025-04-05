@@ -1,0 +1,13 @@
+# Virtual environment
+venv/
+.env
+
+# PyCharm project files
+.idea/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+#secrets
+credential_backup.py
