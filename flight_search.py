@@ -16,7 +16,7 @@ def fetch_flight_offers():
         "date_from": today,
         "date_to": three_months_later,
         "curr": "EUR",
-        "limit": 150,
+        "limit": 50,
         "sort": "price",
         "asc": 1,
         "locale": "de"  # Setzen der Sprache auf Deutsch

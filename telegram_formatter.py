@@ -1,4 +1,6 @@
 from datetime import datetime
+from tinyurl_helper import shorten_url  # NEU: TinyURL-Import
+
 
 def format_duration(seconds):
     hours = seconds // 3600
@@ -14,21 +16,24 @@ def format_time(date_string):
     return date.strftime("%H:%M")
 
 def format_flight_offer(flight):
+    #short_link = shorten_url(flight['link'])  # Kürze den Link
+    short_link = flight['link']
+
     if flight["type"] == "one-way":
         return (
             f"🛫 {flight['city']}\n"
             f"📅 {format_date(flight['departure_time'])} 🕑 {format_time(flight['departure_time'])}\n"
-            f"🛫️ Flugzeit: {format_duration(flight['duration'])}\n"
             f"💶 {flight['price']} EUR\n"
-            f"👉 [Zum Angebot]({flight['link']})"
+            f"⌛ {format_duration(flight['duration'])}\n"
+            f"👉 [Zum Angebot]({short_link})"
         )
     else:
         return (
             f"🛫 🔁 🛬 {flight['city']}\n"
-            f"📅 Hinflug: {format_date(flight['departure_time'])} 🕑 {format_time(flight['departure_time'])}\n"
-            f"   🛫️ {format_duration(flight['duration_outbound'])}\n"
-            f"📅 Rückflug: {format_date(flight['return_time'])} 🕑 {format_time(flight['return_time'])}\n"
-            f"   🛫 {format_duration(flight['duration_inbound'])}\n"
+            f"📅 {format_date(flight['departure_time'])} 🕑 {format_time(flight['departure_time'])} 🛫\n"
+            f"⌛️ {format_duration(flight['duration_outbound'])}\n"
+            f"📅 {format_date(flight['return_time'])} 🕑 {format_time(flight['return_time'])} 🛬\n"
+            f"⌛ {format_duration(flight['duration_inbound'])}\n"
             f"💶 {flight['price']} EUR\n"
-            f"👉 [Zum Angebot]({flight['link']})"
+            f"👉 [Zum Angebot]({short_link})"
         )
