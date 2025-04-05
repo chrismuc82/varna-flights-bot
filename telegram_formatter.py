@@ -1,44 +1,34 @@
 from datetime import datetime
-import locale
 
-# Stelle sicher, dass Deutsch verwendet wird
-try:
-    locale.setlocale(locale.LC_TIME, "de_DE.UTF-8")
-except locale.Error:
-    locale.setlocale(locale.LC_TIME, "de_DE")  # Fallback für Windows/Linux
+def format_duration(minutes):
+    hours = minutes // 60
+    mins = minutes % 60
+    return f"{hours}h {mins}m" if hours else f"{mins}m"
 
-def format_date(date_str):
-    """Format ISO datetime string to '15. April 2024'."""
-    dt = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.000Z")
-    return dt.strftime("%-d. %B %Y")  # z.B. '15. April 2024'
+def format_date(date_string):
+    date = datetime.fromisoformat(date_string.replace("Z", "+00:00"))
+    return date.strftime("%d. %B %Y")
 
-def format_datetime(dt_str):
-    dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
-    date_formatted = dt.strftime("%d. %B %Y")
-    time_formatted = dt.strftime("%H:%M")
-    return date_formatted, time_formatted
+def format_time(date_string):
+    date = datetime.fromisoformat(date_string.replace("Z", "+00:00"))
+    return date.strftime("%H:%M")
 
 def format_flight_offer(flight):
     if flight["type"] == "one-way":
-        duration_minutes = flight["duration"] // 60
-        message = (
+        return (
             f"🛫 {flight['city']} ({flight['iata']})\n"
-            f"📅 {format_date(flight['departure_time'])}\n"
-            f"⏱️ Flugdauer: {duration_minutes} Min\n"
-            f"💶 Preis: {flight['price']} EUR\n"
-            f"🔗 [Zur Buchung]({flight['link']})"
-        )
-    elif flight["type"] == "roundtrip":
-        outbound_minutes = flight["duration_outbound"] // 60
-        inbound_minutes = flight["duration_inbound"] // 60
-        message = (
-            f"🛫 {flight['city']} ({flight['iata']})\n"
-            f"📅 Hinflug: {format_date(flight['departure_time'])} ({outbound_minutes} Min)\n"
-            f"📅 Rückflug: {format_date(flight['return_time'])} ({inbound_minutes} Min)\n"
-            f"💶 Preis: {flight['price']} EUR\n"
-            f"🔗 [Zur Buchung]({flight['link']})"
+            f"📅 {format_date(flight['departure_time'])} 🕑 {format_time(flight['departure_time'])}\n"
+            f"🛫️ Flugzeit: {format_duration(flight['duration'])}\n"
+            f"💶 {flight['price']} EUR\n"
+            f"👉 [Jetzt buchen]({flight['link']})"
         )
     else:
-        message = "❌ Unbekannter Flugtyp"
-
-    return message
+        return (
+            f"🛫 🔁 🛬 {flight['city']} ({flight['iata']})\n"
+            f"📅 Hinflug: {format_date(flight['departure_time'])} 🕑 {format_time(flight['departure_time'])}\n"
+            f"   🛫️ {format_duration(flight['duration_outbound'])}\n"
+            f"📅 Rückflug: {format_date(flight['return_time'])} 🕑 {format_time(flight['return_time'])}\n"
+            f"   🛫 {format_duration(flight['duration_inbound'])}\n"
+            f"💶 {flight['price']} EUR\n"
+            f"👉 [Jetzt buchen]({flight['link']})"
+        )
