@@ -24,9 +24,6 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run script
-        env:
-          TEQUILA_API_KEY: ${{ secrets.TEQUILA_API_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
         run: |
           python main.py
