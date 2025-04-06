@@ -6,7 +6,6 @@ from config import GIST_ID, GIST_TOKEN
 
 logger = logging.getLogger(__name__)
 
-FILENAME = "topics.json"
 GIST_API_URL = f"https://api.github.com/gists/{GIST_ID}"
 
 HEADERS = {
@@ -14,40 +13,44 @@ HEADERS = {
     "Accept": "application/vnd.github.v3+json"
 }
 
-
-def load_topics():
+def load_file_from_gist(filename):
     try:
         response = requests.get(GIST_API_URL, headers=HEADERS)
         if response.status_code == 200:
             files = response.json().get("files", {})
-            if FILENAME in files:
-                content = files[FILENAME]["content"]
-                logger.info("Topics erfolgreich aus Gist geladen.")
+            if filename in files:
+                content = files[filename]["content"]
+                logger.info("Datei %s erfolgreich aus Gist geladen.", filename)
                 return json.loads(content)
             else:
-                logger.warning("Datei %s nicht im Gist gefunden. Leere Struktur wird verwendet.", FILENAME)
+                logger.warning("Datei %s nicht im Gist gefunden. Leere Struktur wird verwendet.", filename)
                 return {}
         else:
             logger.error("Fehler beim Laden des Gists: %s", response.text)
             return {}
     except Exception as e:
-        logger.exception("Unerwarteter Fehler beim Laden von Topics: %s", str(e))
+        logger.exception("Unerwarteter Fehler beim Laden von %s: %s", filename, str(e))
         return {}
 
-
-def save_topics(topics):
+def save_file_to_gist(filename, content_dict):
     try:
         payload = {
             "files": {
-                FILENAME: {
-                    "content": json.dumps(topics, indent=2)
+                filename: {
+                    "content": json.dumps(content_dict, indent=2)
                 }
             }
         }
         response = requests.patch(GIST_API_URL, headers=HEADERS, json=payload)
         if response.status_code == 200:
-            logger.info("Topics erfolgreich im Gist gespeichert.")
+            logger.info("Datei %s erfolgreich im Gist gespeichert.", filename)
         else:
-            logger.error("Fehler beim Speichern im Gist: %s", response.text)
+            logger.error("Fehler beim Speichern der Datei %s im Gist: %s", filename, response.text)
     except Exception as e:
-        logger.exception("Unerwarteter Fehler beim Speichern von Topics: %s", str(e))
+        logger.exception("Unerwarteter Fehler beim Speichern von %s: %s", filename, str(e))
+
+def load_topics():
+    return load_file_from_gist("topics.json")
+
+def save_topics(topics):
+    save_file_to_gist("topics.json", topics)
