@@ -50,7 +50,7 @@ def fetch_flight_offers():
         "date_from": today,
         "date_to": two_month_later,
         "curr": "EUR",
-        "limit": 500,
+        "limit": 50,
         "sort": "price",
         "asc": 1,
         "locale": "de"

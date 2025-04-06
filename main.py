@@ -21,10 +21,9 @@ PRICE_FILENAME = "prices.json"
 def compare_and_update_prices(current_offer, saved_prices):
     flight_id = extract_flights_id(current_offer["link"])  # Extract 'flightsId' from the 'link' field
     logger.debug(f"Vergleiche Angebot: {current_offer}")  # Log the current offer for debugging
-
     if flight_id:
         existing_offer = saved_prices.get(flight_id)
-
+        print(f"FlightID: {flight_id} ::: {existing_offer}")
         if existing_offer:
             if current_offer["price"] < existing_offer["price"]:
                 logger.info(f"Neues günstigeres Angebot für {current_offer['city']}: {current_offer['price']} EUR")
