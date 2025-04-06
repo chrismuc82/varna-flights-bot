@@ -13,14 +13,14 @@ HEADERS = {
     "Accept": "application/vnd.github.v3+json"
 }
 
-def load_file_from_gist(filename):
+def load_file(filename):
     try:
         response = requests.get(GIST_API_URL, headers=HEADERS)
         if response.status_code == 200:
             files = response.json().get("files", {})
             if filename in files:
                 content = files[filename]["content"]
-                logger.info("Datei %s erfolgreich aus Gist geladen.", filename)
+                logger.info("%s erfolgreich aus Gist geladen.", filename)
                 return json.loads(content)
             else:
                 logger.warning("Datei %s nicht im Gist gefunden. Leere Struktur wird verwendet.", filename)
@@ -32,25 +32,32 @@ def load_file_from_gist(filename):
         logger.exception("Unerwarteter Fehler beim Laden von %s: %s", filename, str(e))
         return {}
 
-def save_file_to_gist(filename, content_dict):
+def save_file(filename, data):
     try:
         payload = {
             "files": {
                 filename: {
-                    "content": json.dumps(content_dict, indent=2)
+                    "content": json.dumps(data, indent=2)
                 }
             }
         }
         response = requests.patch(GIST_API_URL, headers=HEADERS, json=payload)
         if response.status_code == 200:
-            logger.info("Datei %s erfolgreich im Gist gespeichert.", filename)
+            logger.info("%s erfolgreich im Gist gespeichert.", filename)
         else:
-            logger.error("Fehler beim Speichern der Datei %s im Gist: %s", filename, response.text)
+            logger.error("Fehler beim Speichern von %s im Gist: %s", filename, response.text)
     except Exception as e:
         logger.exception("Unerwarteter Fehler beim Speichern von %s: %s", filename, str(e))
 
+
 def load_topics():
-    return load_file_from_gist("topics.json")
+    return load_file("topics.json")
 
 def save_topics(topics):
-    save_file_to_gist("topics.json", topics)
+    save_file("topics.json", topics)
+
+def load_prices():
+    return load_file("prices.json")
+
+def save_prices(prices):
+    save_file("prices.json", prices)
