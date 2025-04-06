@@ -3,14 +3,12 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-def format_duration(minutes):
-    try:
-        hours = minutes // 60
-        mins = minutes % 60
-        return f"{hours}h {mins}m" if hours else f"{mins}m"
-    except Exception as e:
-        logger.error("Error formatting duration from minutes=%s: %s", minutes, e, exc_info=True)
-        return "?"
+def format_duration(seconds):
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    if hours:
+        return f"{hours}h {minutes}m"
+    return f"{minutes}m"
 
 def format_date(date_string):
     try:
@@ -32,7 +30,7 @@ def format_flight_offer(flight):
     try:
         if flight["type"] == "one-way":
             return (
-                f"🛫 🔁 {flight['city']} ({flight['iata']})\n"
+                f"🛫 {flight['city']} ({flight['iata']})\n"
                 f"📅 {format_date(flight['departure_time'])} 🕑 {format_time(flight['departure_time'])}\n"
                 f"✈️ Flugzeit: {format_duration(flight['duration'])}\n"
                 f"💶 {flight['price']} EUR\n"

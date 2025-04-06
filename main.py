@@ -5,6 +5,7 @@ from config import TELEGRAM_API_KEY, GROUP_ID
 from telegram_formatter import format_flight_offer
 import logging
 
+# Logging konfigurieren
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
@@ -29,18 +30,23 @@ def send_flight_offer(flight):
 
         response = requests.post(url, params=params)
         if response.status_code == 200:
-            print(f"✅ Sent offer to {city} ({iata_code})")
+            logger.info(f"✅ Sent offer to {city} ({iata_code})")
         else:
-            print(f"❌ Failed to send message: {response.text}")
+            logger.error(f"❌ Failed to send message to {city} ({iata_code}): {response.text}")
     else:
-        print(f"⚠️ No topic for {city} ({iata_code})")
+        logger.warning(f"⚠️ No topic for {city} ({iata_code})")
 
 
 def main():
+    logger.info("Starte Abruf von Flugangeboten.")
     offers = fetch_flight_offers()
+
+    if not offers:
+        logger.warning("⚠️ Keine Angebote gefunden oder Fehler bei der Abfrage.")
+        return
+
     for flight in offers:
         send_flight_offer(flight)
-
 
 if __name__ == "__main__":
     main()
