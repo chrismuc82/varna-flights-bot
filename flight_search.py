@@ -1,10 +1,18 @@
 import requests
 import datetime
+import time
 import logging
 from config import KIWI_API_KEY
 from urllib.parse import urlparse, parse_qs
 
 logger = logging.getLogger(__name__)
+
+
+def add_timestamp(offer):
+    """Add a timestamp to the offer when it's first saved."""
+    offer["timestamp"] = time.time()  # Get the current time in seconds since epoch
+    return offer
+
 
 def extract_flights_id(deep_link):
     """Extract flightsId from the deep_link URL."""
@@ -21,6 +29,7 @@ def extract_flights_id(deep_link):
         logger.error("Fehler beim Extrahieren der flightsId aus dem Deeplink: %s", e)
         return None
 
+
 def fetch_flight_offers():
     logger.info("Starte Abruf von Flugangeboten...")
 
@@ -28,10 +37,12 @@ def fetch_flight_offers():
     headers = {"accept": "application/json", "apikey": KIWI_API_KEY}
 
     today = datetime.datetime.today().strftime("%d/%m/%Y")
-    three_months_later = (datetime.datetime.today() + datetime.timedelta(days=90)).strftime("%d/%m/%Y")
-    one_month_later = (datetime.datetime.today() + datetime.timedelta(days=30)).strftime("%d/%m/%Y")
+
+    ''' three_months_later = (datetime.datetime.today() + datetime.timedelta(days=90)).strftime("%d/%m/%Y")
+        one_month_later = (datetime.datetime.today() + datetime.timedelta(days=30)).strftime("%d/%m/%Y") 
+        two_weeks_later = (datetime.datetime.today() + datetime.timedelta(days=14)).strftime("%d/%m/%Y")
+    '''
     two_month_later = (datetime.datetime.today() + datetime.timedelta(days=60)).strftime("%d/%m/%Y")
-    two_weeks_later = (datetime.datetime.today() + datetime.timedelta(days=14)).strftime("%d/%m/%Y")
 
     common_params = {
         "fly_from": "VAR",
@@ -60,7 +71,7 @@ def fetch_flight_offers():
             iata = flight["cityCodeTo"]
             flight_id = extract_flights_id(flight["deep_link"])  # Extract 'flightsId' from 'link' field
             if iata not in one_way_flights or flight["price"] < one_way_flights[iata]["price"]:
-                one_way_flights[iata] = {
+                one_way_flights[iata] = add_timestamp({
                     "city": flight["cityTo"],
                     "iata": iata,
                     "price": flight["price"],
@@ -70,12 +81,14 @@ def fetch_flight_offers():
                     "link": flight["deep_link"],
                     "flightsId": flight_id,  # Save the flightsId
                     "type": "one-way"
-                }
+                })
     else:
         logger.error("Fehler beim Abrufen der One-Way-Flüge: %s", one_way_response.text)
 
+    '''
     # Roundtrip Flights
     #roundtrip_params = {**common_params, "return_from": two_weeks_later, "return_to": one_month_later}
+    '''
     roundtrip_params = {**common_params, "nights_in_dst_from": 3, "nights_in_dst_to": 14}
     roundtrip_response = requests.get(url, headers=headers, params=roundtrip_params)
 
@@ -101,7 +114,7 @@ def fetch_flight_offers():
             iata = flight["cityCodeTo"]
             flight_id = extract_flights_id(flight["deep_link"])  # Extract 'flightsId' from 'link' field
             if iata not in roundtrip_flights or flight["price"] < roundtrip_flights[iata]["price"]:
-                roundtrip_flights[iata] = {
+                roundtrip_flights[iata] = add_timestamp({
                     "city": flight["cityTo"],
                     "iata": iata,
                     "price": flight["price"],
@@ -112,7 +125,7 @@ def fetch_flight_offers():
                     "link": flight["deep_link"],
                     "flightsId": flight_id,  # Save the flightsId
                     "type": "roundtrip"
-                }
+                })
         logger.info("Übersprungene Roundtrips wegen unterschiedlicher Flughäfen: %d", skipped)  # NEU
 
     else:
