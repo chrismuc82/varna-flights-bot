@@ -3,7 +3,13 @@ from flight_search import fetch_flight_offers
 from topic_manager import ensure_topic_exists
 from config import TELEGRAM_API_KEY, GROUP_ID
 from telegram_formatter import format_flight_offer
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 def send_flight_offer(flight):
     """Send a flight offer to the corresponding Telegram topic."""
