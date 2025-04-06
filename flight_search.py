@@ -1,8 +1,13 @@
 import requests
 import datetime
+import logging
 from config import KIWI_API_KEY
 
+logger = logging.getLogger(__name__)
+
 def fetch_flight_offers():
+    logger.info("Starte Abruf von Flugangeboten.")
+
     url = "https://api.tequila.kiwi.com/v2/search"
     headers = {"accept": "application/json", "apikey": KIWI_API_KEY}
 
@@ -24,59 +29,21 @@ def fetch_flight_offers():
     }
 
     # One-way flights
-    one_way_response = requests.get(url, headers=headers, params=common_params)
-    # Roundtrip flights
-    roundtrip_params = common_params.copy()
-    roundtrip_params.update({
-        #"return_from": today,
-        #"return_to": two_weeks_later,
-        "nights_in_dst_from": 1,
-        "nights_in_dst_to": 30,
-    })
-    roundtrip_response = requests.get(url, headers=headers, params=roundtrip_params)
-
-    one_way_flight_data = {}
-    round_trip_flight_data = {}
-
-    # Process One-Way Flights
+    one_way_response = requests.get(url, headers=headers, params={**common_params, "return_from": "", "return_to": ""})
     if one_way_response.status_code == 200:
-        for flight in one_way_response.json().get("data", []):
-            iata = flight["cityCodeTo"]
-            if iata not in one_way_flight_data or flight["price"] < one_way_flight_data[iata]["price"]:
-                one_way_flight_data[iata] = {
-                    "city": flight["cityTo"],
-                    "iata": iata,
-                    "price": flight["price"],
-                    "departure_time": flight["local_departure"],
-                    "return_time": None,
-                    "duration": flight["duration"]["departure"],
-                    "link": flight["deep_link"],
-                    "type": "one-way"
-                }
+        logger.info("One-Way-Flüge erfolgreich abgerufen.")
+        one_way_data = one_way_response.json()
+        # Verarbeitung der One-Way-Flugdaten
+    else:
+        logger.error("Fehler beim Abrufen der One-Way-Flüge: %s", one_way_response.text)
 
-    # Process Roundtrip Flights
+    # Roundtrip flights
+    roundtrip_response = requests.get(url, headers=headers, params={**common_params, "return_from": two_weeks_later, "return_to": one_months_later})
     if roundtrip_response.status_code == 200:
-        for flight in roundtrip_response.json().get("data", []):
-            iata = flight["cityCodeTo"]
-            if iata not in round_trip_flight_data or flight["price"] < round_trip_flight_data[iata]["price"]:
-                round_trip_flight_data[iata] = {
-                    "city": flight["cityTo"],
-                    "iata": iata,
-                    "price": flight["price"],
-                    "departure_time": flight["local_departure"],
-                    "return_time": flight["route"][-1]["local_departure"],
-                    "duration_outbound": flight["duration"]["departure"],
-                    "duration_inbound": flight["duration"]["return"],
-                    "link": flight["deep_link"],
-                    "type": "roundtrip"
-                }
-    # Combine both one-way and roundtrip (up to one of each per destination)
-    combined_flights = []
-    destinations = set(one_way_flight_data.keys()).union(set(round_trip_flight_data.keys()))
-    for iata in destinations:
-        if iata in one_way_flight_data:
-            combined_flights.append(one_way_flight_data[iata])
-        if iata in round_trip_flight_data:
-            combined_flights.append(round_trip_flight_data[iata])
-    return list(combined_flights)
-    #return list(flight_data.values())
+        logger.info("Roundtrip-Flüge erfolgreich abgerufen.")
+        roundtrip_data = roundtrip_response.json()
+        # Verarbeitung der Roundtrip-Flugdaten
+    else:
+        logger.error("Fehler beim Abrufen der Roundtrip-Flüge: %s", roundtrip_response.text)
+
+    # Weitere Verarbeitung und Rückgabe der Daten
