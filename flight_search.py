@@ -43,12 +43,13 @@ def fetch_flight_offers():
         two_weeks_later = (datetime.datetime.today() + datetime.timedelta(days=14)).strftime("%d/%m/%Y")
     '''
     two_month_later = (datetime.datetime.today() + datetime.timedelta(days=60)).strftime("%d/%m/%Y")
+    three_months_later = (datetime.datetime.today() + datetime.timedelta(days=90)).strftime("%d/%m/%Y")
 
     common_params = {
         "fly_from": "VAR",
         "fly_to": "DE",
         "date_from": today,
-        "date_to": two_month_later,
+        "date_to": three_months_later,
         "curr": "EUR",
         "limit": 500,
         "sort": "price",
