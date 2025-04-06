@@ -9,6 +9,13 @@ jobs:
   run-script:
     runs-on: ubuntu-latest
 
+    env:
+      KIWI_API_KEY: ${{ secrets.KIWI_API_KEY }}
+      TELEGRAM_API_KEY: ${{ secrets.TELEGRAM_API_KEY }}
+      GROUP_ID: ${{ secrets.GROUP_ID }}
+      GIST_ID: ${{ secrets.GIST_ID }}
+      GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
