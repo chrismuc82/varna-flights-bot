@@ -14,3 +14,6 @@ TELEGRAM_API_KEY = os.getenv("TELEGRAM_API_KEY")
 
 # Your Telegram group
 GROUP_ID = os.getenv("GROUP_ID")
+
+GIST_ID = os.getenv("GIST_ID")
+GIST_TOKEN = os.getenv("GIST_TOKEN")
