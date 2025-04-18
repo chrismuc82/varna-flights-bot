@@ -2,7 +2,7 @@ name: Run Flight Bot
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # alle 5 Minuten
+    - cron: '*/30 * * * *'  # alle 5 Minuten
   workflow_dispatch:  # manuelles Triggern
 
 jobs:
