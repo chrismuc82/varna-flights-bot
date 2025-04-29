@@ -32,8 +32,8 @@ def format_flight_offer(flight):
             return (
                 f"🛫 {flight['city']} ({flight['iata']})\n"
                 f"📅 {format_date(flight['departure_time'])} 🕑 {format_time(flight['departure_time'])}\n"
-                f"✈️ Flugzeit: {format_duration(flight['duration'])}\n"
                 f"💶 {flight['price']} EUR\n"
+                f"✈️ Flugzeit: {format_duration(flight['duration'])}\n"
                 f"👉 [Jetzt buchen]({flight['link']})"
             )
         else:
